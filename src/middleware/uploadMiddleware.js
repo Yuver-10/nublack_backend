@@ -2,8 +2,8 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
-// Root of images in the frontend (served by backend app.js)
-const uploadDir = path.join(process.cwd(), '../NUBLACK_APP/public/images/products');
+// Root of images - use relative path compatible with Heroku
+const uploadDir = path.join(process.cwd(), 'public/images/products');
 
 // Ensure directory exists
 if (!fs.existsSync(uploadDir)) {

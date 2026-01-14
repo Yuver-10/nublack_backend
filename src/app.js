@@ -42,7 +42,7 @@ app.use(logUnauthorizedAccess);
 
 // Serve Static Files (Images)
 // Assuming images are stored in a 'public' folder at the root of server
-app.use('/images', express.static(path.join(__dirname, '../../NUBLACK_APP/public/images')));
+app.use('/images', express.static(path.join(process.cwd(), 'public/images')));
 
 // Routes
 app.use('/api/auth', authRoutes);
