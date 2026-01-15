@@ -19,6 +19,7 @@ import {
 } from '../middleware/securityLogger.js';
 import ensureDemoAdmin from '../utils/createDemoAdmin.js';
 import { Usuario } from '../models/index.js';
+import bcrypt from 'bcryptjs';
 
 const router = express.Router();
 
@@ -47,6 +48,65 @@ router.get('/debug/ensure-admin', async (req, res) => {
             } : null
         });
     } catch (error) {
+        res.status(500).json({
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
+// Debug endpoint - diagnosticar login
+router.post('/debug/test-login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        console.log('=== DEBUG LOGIN ===');
+        console.log('Email:', email);
+        console.log('Password:', password);
+
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email y password requeridos' });
+        }
+
+        const user = await Usuario.findOne({ where: { email } });
+        console.log('User encontrado:', !!user);
+
+        if (!user) {
+            return res.status(404).json({ 
+                message: 'Usuario no encontrado',
+                email
+            });
+        }
+
+        console.log('User data:', {
+            id: user.id_usuario,
+            email: user.email,
+            estado: user.estado,
+            hasHash: !!user.password_hash
+        });
+
+        if (user.estado !== 'activo') {
+            return res.status(403).json({ message: 'Usuario inactivo' });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password_hash);
+        console.log('Password match:', isMatch);
+
+        res.json({
+            message: 'Debug complete',
+            userExists: true,
+            estadoOK: user.estado === 'activo',
+            passwordMatch: isMatch,
+            user: {
+                id: user.id_usuario,
+                email: user.email,
+                rol: user.rol,
+                estado: user.estado
+            }
+        });
+
+    } catch (error) {
+        console.error('Debug error:', error);
         res.status(500).json({
             error: error.message,
             stack: error.stack
