@@ -93,6 +93,11 @@ export const login = async (req, res) => {
             return res.status(403).json({ message: 'Usuario inactivo o suspendido' });
         }
 
+        if (!user.password_hash) {
+            console.error(`[AUTH] Usuario ${email} no tiene password_hash en BD`);
+            return res.status(401).json({ message: 'Credenciales inválidas' });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password_hash);
 
         if (!isMatch) {
@@ -115,8 +120,8 @@ export const login = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Login Error:', error);
-        res.status(500).json({ message: 'Error en el login' });
+        console.error('Login Error:', error.message || error);
+        res.status(500).json({ message: 'Error en el login', debug: error.message });
     }
 };
 
