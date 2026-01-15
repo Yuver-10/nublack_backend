@@ -14,7 +14,11 @@ const generateToken = (usuario) => {
 
 export const register = async (req, res) => {
     try {
-        const { nombre, apellido, tipo_documento, documento, telefono, email, password } = req.body;
+        let { nombre, apellido, tipo_documento, documento, telefono, email, password } = req.body;
+
+        // Trim values (express-validator validates but doesn't modify req.body)
+        if (password) password = password.trim();
+        if (email) email = email.trim().toLowerCase();
 
         // Check if user exists
         const existingUser = await Usuario.findOne({ where: { email } });
@@ -70,7 +74,11 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        let { email, password } = req.body;
+
+        // Trim password (express-validator validates but doesn't modify req.body)
+        if (password) password = password.trim();
+        if (email) email = email.trim().toLowerCase();
 
         if (!email || !password) {
             return res.status(400).json({ message: 'Email y contraseña son requeridos' });
@@ -129,7 +137,11 @@ export const getProfile = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
     try {
-        const { nombre, apellido, tipo_documento, documento, telefono, password } = req.body;
+        let { nombre, apellido, tipo_documento, documento, telefono, password } = req.body;
+        
+        // Trim password
+        if (password) password = password.trim();
+
         const user = await Usuario.findByPk(req.usuarioId);
 
         if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -205,7 +217,12 @@ export const forgotPassword = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
     try {
-        const { email, code, newPassword } = req.body;
+        let { email, code, newPassword } = req.body;
+
+        // Trim values
+        if (newPassword) newPassword = newPassword.trim();
+        if (email) email = email.trim().toLowerCase();
+
         const user = await Usuario.findOne({
             where: {
                 email,

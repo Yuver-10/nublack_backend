@@ -19,8 +19,11 @@ export async function ensureDemoAdmin() {
             return { created: false, reason: 'exists' };
         }
 
+        // Trim password
+        const passwordToHash = DEMO_ADMIN.password.trim();
+
         const salt = await bcrypt.genSalt(10);
-        const password_hash = await bcrypt.hash(DEMO_ADMIN.password, salt);
+        const password_hash = await bcrypt.hash(passwordToHash, salt);
 
         const newAdmin = await Usuario.create({
             nombre: DEMO_ADMIN.nombre,
