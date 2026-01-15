@@ -33,8 +33,24 @@ async function createAdminInRemoteBD() {
         console.log(`  Host: ${process.env.DB_HOST}`);
         console.log(`  Base: ${process.env.DB_NAME}\n`);
 
-        // Definir modelo de Usuario
-        const Usuario = sequelize.define('Usuario', {}, {
+        // Definir modelo de Usuario correctamente
+        const Usuario = sequelize.define('Usuario', {
+            id_usuario: {
+                type: sequelize.Sequelize.INTEGER,
+                primaryKey: true,
+                autoIncrement: true
+            },
+            nombre: sequelize.Sequelize.STRING,
+            apellido: sequelize.Sequelize.STRING,
+            email: sequelize.Sequelize.STRING,
+            password_hash: sequelize.Sequelize.STRING,
+            password_salt: sequelize.Sequelize.STRING,
+            rol: sequelize.Sequelize.STRING,
+            estado: sequelize.Sequelize.STRING,
+            tipo_documento: sequelize.Sequelize.STRING,
+            documento: sequelize.Sequelize.STRING,
+            telefono: sequelize.Sequelize.STRING
+        }, {
             tableName: 'usuarios',
             timestamps: false
         });

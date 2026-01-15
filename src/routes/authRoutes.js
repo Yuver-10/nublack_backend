@@ -24,7 +24,7 @@ const router = express.Router();
 
 // Rutas públicas con rate limiting, validación y logging
 router.post('/register', registerLimiter, registerValidator, logRegistration, register);
-router.post('/login', loginLimiter, loginValidator, logLoginAttempt, login);
+router.post('/login', loginValidator, login); // Temporalmente sin limiter ni logger para debug
 router.post('/forgot-password', forgotPasswordLimiter, forgotPasswordValidator, logPasswordRecovery, forgotPassword);
 router.post('/verify-code', verifyCodeLimiter, verifyCodeValidator, verifyCode);
 router.post('/reset-password', resetPasswordValidator, resetPassword);
