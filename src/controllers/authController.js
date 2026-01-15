@@ -4,11 +4,16 @@ import jwt from 'jsonwebtoken';
 import { sendWelcomeEmail, sendPasswordResetEmail } from '../services/emailService.js';
 import { Op } from 'sequelize';
 
+const JWT_SECRET = process.env.JWT_SECRET || 'default_jwt_secret_key_please_change_in_production';
+
 const generateToken = (usuario) => {
+    if (!JWT_SECRET || JWT_SECRET.includes('default')) {
+        console.warn('[SECURITY] JWT_SECRET no está configurado en variables de entorno');
+    }
     return jwt.sign(
         { id: usuario.id_usuario, rol: usuario.rol },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' } // Reducido de 7d a 1h para mayor seguridad
+        JWT_SECRET,
+        { expiresIn: '1h' }
     );
 };
 
@@ -122,9 +127,17 @@ export const login = async (req, res) => {
     } catch (error) {
         console.error('Login Error:', error.message || error);
         console.error('Stack:', error.stack);
+        
+        // Debug info
+        const isProduction = process.env.NODE_ENV === 'production';
+        const debugInfo = isProduction ? undefined : {
+            error: error.message,
+            type: error.name
+        };
+        
         res.status(500).json({ 
             message: 'Error en el login',
-            debug: process.env.NODE_ENV === 'development' ? error.message : undefined 
+            ...(debugInfo && { debug: debugInfo })
         });
     }
 };

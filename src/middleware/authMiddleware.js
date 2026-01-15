@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 
+const JWT_SECRET = process.env.JWT_SECRET || 'default_jwt_secret_key_please_change_in_production';
+
 const authMiddleware = (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
@@ -19,7 +21,7 @@ const authMiddleware = (req, res, next) => {
             return res.status(401).json({ message: 'Token malformatted' });
         }
 
-        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        jwt.verify(token, JWT_SECRET, (err, decoded) => {
             if (err) {
                 return res.status(401).json({ message: 'Token invalid', error: err.message });
             }
