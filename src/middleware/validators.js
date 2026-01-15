@@ -40,10 +40,9 @@ export const registerValidator = [
         .normalizeEmail(),
 
     body('password')
+        .trim()
         .notEmpty().withMessage('La contraseña es requerida')
-        .isLength({ min: 7 }).withMessage('La contraseña debe tener al menos 7 caracteres')
-        .matches(/[A-Z]/).withMessage('La contraseña debe contener al menos una mayúscula')
-        .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/).withMessage('La contraseña debe contener al menos un carácter especial'),
+        .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
 
     body('tipo_documento')
         .notEmpty().withMessage('El tipo de documento es requerido')
@@ -74,7 +73,9 @@ export const loginValidator = [
         .normalizeEmail(),
 
     body('password')
-        .notEmpty().withMessage('La contraseña es requerida'),
+        .trim()
+        .notEmpty().withMessage('La contraseña es requerida')
+        .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
 
     handleValidationErrors
 ];
@@ -97,9 +98,8 @@ export const updateProfileValidator = [
 
     body('password')
         .optional()
-        .isLength({ min: 7 }).withMessage('La contraseña debe tener al menos 7 caracteres')
-        .matches(/[A-Z]/).withMessage('La contraseña debe contener al menos una mayúscula')
-        .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/).withMessage('La contraseña debe contener al menos un carácter especial'),
+        .trim()
+        .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
 
     body('tipo_documento')
         .optional()
@@ -166,10 +166,9 @@ export const resetPasswordValidator = [
         .isLength({ min: 6, max: 6 }).withMessage('El código debe tener 6 dígitos'),
 
     body('newPassword')
+        .trim()
         .notEmpty().withMessage('La nueva contraseña es requerida')
-        .isLength({ min: 7 }).withMessage('La contraseña debe tener al menos 7 caracteres')
-        .matches(/[A-Z]/).withMessage('La contraseña debe contener al menos una mayúscula')
-        .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/).withMessage('La contraseña debe contener al menos un carácter especial'),
+        .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
 
     handleValidationErrors
 ];

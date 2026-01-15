@@ -7,7 +7,7 @@ const DEMO_ADMIN = {
     tipo_documento: process.env.DEMO_ADMIN_TIPO_DOC || 'Pasaporte',
     documento: process.env.DEMO_ADMIN_DOCUMENTO || '0000000000',
     telefono: process.env.DEMO_ADMIN_TELEFONO || '0000000000',
-    email: process.env.DEMO_ADMIN_EMAIL || 'admin@demo.local',
+    email: process.env.DEMO_ADMIN_EMAIL || 'admin@demo.local.com',
     password: process.env.DEMO_ADMIN_PASSWORD || 'admin1234'
 };
 
