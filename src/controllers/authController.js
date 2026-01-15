@@ -121,7 +121,11 @@ export const login = async (req, res) => {
 
     } catch (error) {
         console.error('Login Error:', error.message || error);
-        res.status(500).json({ message: 'Error en el login', debug: error.message });
+        console.error('Stack:', error.stack);
+        res.status(500).json({ 
+            message: 'Error en el login',
+            debug: process.env.NODE_ENV === 'development' ? error.message : undefined 
+        });
     }
 };
 
