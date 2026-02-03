@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
+import bcrypt from 'bcryptjs';
 
 const Usuario = sequelize.define('Usuario', {
     id_usuario: {
@@ -32,6 +33,16 @@ const Usuario = sequelize.define('Usuario', {
         type: DataTypes.STRING(150),
         allowNull: false,
         unique: true
+    },
+    // Virtual field for raw password
+    password: {
+        type: DataTypes.VIRTUAL,
+        set(value) {
+            this.setDataValue('password', value);
+        },
+        validate: {
+            len: [6, 100]
+        }
     },
     password_hash: {
         type: DataTypes.STRING(255),
@@ -67,7 +78,21 @@ const Usuario = sequelize.define('Usuario', {
     }
 }, {
     tableName: 'usuarios',
-    timestamps: false // Handled by triggers/defaults
+    timestamps: false,
+    hooks: {
+        beforeSave: async (usuario) => {
+            if (usuario.password) {
+                const salt = await bcrypt.genSalt(10);
+                usuario.password_hash = await bcrypt.hash(usuario.password, salt);
+                usuario.password_salt = salt; // Keep for DB compatibility
+            }
+        }
+    }
 });
+
+// Instance method to compare password
+Usuario.prototype.validPassword = async function (password) {
+    return await bcrypt.compare(password, this.password_hash);
+};
 
 export default Usuario;

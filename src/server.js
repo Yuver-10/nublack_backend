@@ -1,7 +1,10 @@
 import app from './app.js';
+import { validateEnv } from './config/env.js';
 // Restart trigger
 import sequelize from './config/database.js';
 import ensureDemoAdmin from './utils/createDemoAdmin.js';
+
+validateEnv();
 
 const PORT = process.env.PORT || 3001;
 

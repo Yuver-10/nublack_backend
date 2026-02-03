@@ -59,7 +59,7 @@ router.get('/debug/ensure-admin', async (req, res) => {
 router.post('/debug/test-login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        
+
         console.log('=== DEBUG LOGIN ===');
         console.log('Email:', email);
         console.log('Password:', password);
@@ -72,7 +72,7 @@ router.post('/debug/test-login', async (req, res) => {
         console.log('User encontrado:', !!user);
 
         if (!user) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 message: 'Usuario no encontrado',
                 email
             });
@@ -117,7 +117,6 @@ router.post('/debug/test-login', async (req, res) => {
 // Rutas protegidas
 router.get('/profile', authMiddleware, getProfile);
 router.put('/profile', authMiddleware, updateProfileValidator, logPasswordChange, updateProfile);
-router.get('/users', authMiddleware, isAdmin, getAllUsers);
 
 export default router;
 

@@ -20,6 +20,23 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Global Request Logger
+app.use((req, res, next) => {
+    const start = Date.now();
+    const timestamp = new Date().toLocaleTimeString();
+
+    // Log when request arrives
+    console.log(`[${timestamp}] Incoming: ${req.method} ${req.url}`);
+
+    // Log when response is sent
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        console.log(`[${timestamp}] Finished: ${req.method} ${req.url} - Status: ${res.statusCode} (${duration}ms)`);
+    });
+
+    next();
+});
+
 // Security Middlewares
 app.use(helmet({
     contentSecurityPolicy: false,
@@ -29,10 +46,12 @@ app.use(helmet({
 
 // Middlewares
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || [
-        'https://nublack12.com',
-        'https://www.nublack12.com'
-    ],
+    origin: process.env.CORS_ORIGIN
+        ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+        : [
+            'https://nublack12.com',
+            'https://www.nublack12.com'
+        ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key']
 }));
@@ -64,17 +83,22 @@ app.use((req, res, next) => {
 
 // Error Handler
 app.use((err, req, res, next) => {
-    console.error('--- DETALLES DEL ERROR ---');
-    console.error('URL:', req.url);
-    console.error('Metodo:', req.method);
-    console.error('Body:', JSON.stringify(req.body, null, 2));
-    console.error('Stack:', err.stack);
-    console.error('--------------------------');
+    const isProduction = process.env.NODE_ENV === 'production';
 
-    res.status(500).json({
-        message: 'Internal Server Error',
-        error: err.message,
-        stack: err.stack
+    console.error('--- ERROR DETECTADO ---');
+    console.error(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    if (!isProduction) {
+        console.error('Body:', JSON.stringify(req.body, null, 2));
+        console.error('Stack:', err.stack);
+    } else {
+        console.error('Message:', err.message);
+    }
+    console.error('-----------------------');
+
+    res.status(err.status || 500).json({
+        success: false,
+        message: isProduction ? 'Error interno del servidor' : err.message,
+        ...(isProduction ? {} : { stack: err.stack, details: err.errors })
     });
 });
 

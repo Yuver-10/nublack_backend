@@ -47,6 +47,7 @@ const createOrder = async (req, res) => {
         };
         const metodoPagoDb = paymentMethodMap[(paymentInfo.metodo || '').toString()] || paymentInfo.metodo || 'Contra Entrega';
 
+        console.log('--- Creando Solicitud en DB ---');
         const solicitud = await Solicitud.create({
             numero_pedido,
             usuario_id,
@@ -65,6 +66,7 @@ const createOrder = async (req, res) => {
             idempotency_key: idempotencyKey || null,
             estado: 'pendiente'
         }, { transaction: t });
+        console.log(`Solicitud ${solicitud.id_solicitud} creada exitosamente`);
 
         // Create Details
         // Validate stock availability for all items first (supports size-specific stock in producto.tallas JSON)
@@ -208,6 +210,14 @@ const createOrder = async (req, res) => {
             }
         }
         const safeMessage = process.env.NODE_ENV === 'production' ? 'Error al procesar el pedido' : `Error al procesar el pedido: ${error.message}`;
+        console.error('--- DETALLE COMPLETO DEL ERROR DE PEDIDO ---');
+        console.error('Error Name:', error.name);
+        console.error('Error Message:', error.message);
+        if (error.errors) {
+            console.error('Validation Errors:', JSON.stringify(error.errors, null, 2));
+        }
+        console.error('Stack:', error.stack);
+        console.error('------------------------------------------');
         res.status(500).json({ message: safeMessage, error: error.message, stack: error.stack });
     }
 };

@@ -13,9 +13,16 @@ const getAllUsers = async (req, res) => {
         const users = await Usuario.findAll({
             attributes: { exclude: ['password_hash', 'password_salt', 'reset_password_token'] }
         });
-        res.json(users);
+        res.json({
+            success: true,
+            data: users
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener usuarios' });
+        console.error('Get All Users Error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al obtener usuarios'
+        });
     }
 };
 

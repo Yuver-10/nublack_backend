@@ -8,8 +8,11 @@ const router = express.Router();
 
 const getCategories = async (req, res) => {
     try {
+        const { all } = req.query;
+        const where = all === 'true' ? {} : { estado: 'Activo' };
+
         const categories = await Categoria.findAll({
-            where: { estado: 'Activo' }
+            where
         });
         res.json(categories);
     } catch (error) {

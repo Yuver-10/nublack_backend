@@ -1,12 +1,12 @@
 import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'default_jwt_secret_key_please_change_in_production';
+import { config } from '../config/env.js';
 
 const authMiddleware = (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
 
         if (!authHeader) {
+            console.warn('[AUTH] Request missing Authorization header');
             return res.status(401).json({ message: 'No token provided' });
         }
 
@@ -21,8 +21,9 @@ const authMiddleware = (req, res, next) => {
             return res.status(401).json({ message: 'Token malformatted' });
         }
 
-        jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        jwt.verify(token, config.jwtSecret || 'default_jwt_secret_key_please_change_in_production', (err, decoded) => {
             if (err) {
+                console.error(`[AUTH] Token verification failed: ${err.message}`);
                 return res.status(401).json({ message: 'Token invalid', error: err.message });
             }
 

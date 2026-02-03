@@ -4,15 +4,13 @@ import jwt from 'jsonwebtoken';
 import { sendWelcomeEmail, sendPasswordResetEmail } from '../services/emailService.js';
 import { Op } from 'sequelize';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'default_jwt_secret_key_please_change_in_production';
+import { config } from '../config/env.js';
 
 const generateToken = (usuario) => {
-    if (!JWT_SECRET || JWT_SECRET.includes('default')) {
-        console.warn('[SECURITY] JWT_SECRET no está configurado en variables de entorno');
-    }
+    const secret = config.jwtSecret || 'default_jwt_secret_key_please_change_in_production';
     return jwt.sign(
         { id: usuario.id_usuario, rol: usuario.rol },
-        JWT_SECRET,
+        secret,
         { expiresIn: '1h' }
     );
 };
@@ -36,9 +34,6 @@ export const register = async (req, res) => {
             return res.status(400).json({ message: 'El documento ya está registrado' });
         }
 
-        // Hash password
-        const salt = await bcrypt.genSalt(10);
-        const password_hash = await bcrypt.hash(password, salt);
 
         const newUser = await Usuario.create({
             nombre,
@@ -47,8 +42,7 @@ export const register = async (req, res) => {
             documento,
             telefono,
             email,
-            password_hash,
-            password_salt: salt, // Storing salt just in case, though bcrypt hash includes it usually
+            password, // Use virtual field
             rol: 'cliente',
             estado: 'activo'
         });
@@ -103,7 +97,7 @@ export const login = async (req, res) => {
             return res.status(401).json({ message: 'Credenciales inválidas' });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password_hash);
+        const isMatch = await user.validPassword(password);
 
         if (!isMatch) {
             console.warn(`[AUTH] Intento de login fallido para: ${email}. Contraseña incorrecta.`);
@@ -127,15 +121,15 @@ export const login = async (req, res) => {
     } catch (error) {
         console.error('Login Error:', error.message || error);
         console.error('Stack:', error.stack);
-        
+
         // Debug info
         const isProduction = process.env.NODE_ENV === 'production';
         const debugInfo = isProduction ? undefined : {
             error: error.message,
             type: error.name
         };
-        
-        res.status(500).json({ 
+
+        res.status(500).json({
             message: 'Error en el login',
             ...(debugInfo && { debug: debugInfo })
         });
@@ -160,7 +154,7 @@ export const getProfile = async (req, res) => {
 export const updateProfile = async (req, res) => {
     try {
         let { nombre, apellido, tipo_documento, documento, telefono, password } = req.body;
-        
+
         // Trim password
         if (password) password = password.trim();
 
@@ -176,9 +170,7 @@ export const updateProfile = async (req, res) => {
         if (telefono) user.telefono = telefono;
 
         if (password) {
-            const salt = await bcrypt.genSalt(10);
-            user.password_hash = await bcrypt.hash(password, salt);
-            user.password_salt = salt;
+            user.password = password;
         }
 
         await user.save();
@@ -205,9 +197,16 @@ export const getAllUsers = async (req, res) => {
         const users = await Usuario.findAll({
             attributes: { exclude: ['password_hash', 'password_salt'] }
         });
-        res.json(users);
+        res.json({
+            success: true,
+            data: users
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener usuarios' });
+        console.error('Get All Users Error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al obtener usuarios'
+        });
     }
 };
 
@@ -233,7 +232,10 @@ export const forgotPassword = async (req, res) => {
         res.json({ success: true, message: 'Código de recuperación enviado al correo' });
     } catch (error) {
         console.error('Forgot Password Error:', error);
-        res.status(500).json({ message: 'Error al procesar solicitud' });
+        res.status(500).json({
+            success: false,
+            message: 'Error al procesar solicitud'
+        });
     }
 };
 
@@ -263,9 +265,7 @@ export const resetPassword = async (req, res) => {
         }
 
         // Actualizar contraseña
-        const salt = await bcrypt.genSalt(10);
-        user.password_hash = await bcrypt.hash(newPassword, salt);
-        user.password_salt = salt;
+        user.password = newPassword;
 
         // Limpiar tokens
         user.reset_password_token = null;
@@ -275,7 +275,10 @@ export const resetPassword = async (req, res) => {
         res.json({ success: true, message: 'Contraseña actualizada exitosamente' });
     } catch (error) {
         console.error('Reset Password Error:', error);
-        res.status(500).json({ message: 'Error al restablecer contraseña' });
+        res.status(500).json({
+            success: false,
+            message: 'Error al restablecer contraseña'
+        });
     }
 };
 export const verifyCode = async (req, res) => {
@@ -300,6 +303,9 @@ export const verifyCode = async (req, res) => {
         res.json({ success: true, message: 'Código verificado correctamente' });
     } catch (error) {
         console.error('Verify Code Error:', error);
-        res.status(500).json({ message: 'Error al verificar código' });
+        res.status(500).json({
+            success: false,
+            message: 'Error al verificar código'
+        });
     }
 };
